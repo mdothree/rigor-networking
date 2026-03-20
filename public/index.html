@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rigor Networking — Email Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <!-- SEO & Social -->
+  <meta name="description" content="Generate personalized cold outreach, coffee chat requests, referral asks, and follow-up emails." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://rigor.design/networking" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rigor.design/networking" />
+  <meta property="og:title" content="Rigor Networking — Email Generator" />
+  <meta property="og:description" content="Generate personalized cold outreach, coffee chat requests, referral asks, and follow-up emails." />
+  <meta property="og:image" content="https://rigor.design/og-image.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Rigor Networking — Email Generator" />
+  <meta name="twitter:description" content="Generate personalized cold outreach, coffee chat requests, referral asks, and follow-up emails." />
+  <meta name="twitter:image" content="https://rigor.design/og-image.png" />
+
+  <!-- Theme color -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#1E3A5F" />
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+    <nav class="nav" aria-label="Main navigation">
+    <a href="/" class="nav-brand">rigor<span>.</span>design</a>
+    <div class="nav-links"><span class="plan-badge hidden" id="plan-badge"></span><a href="#" id="nav-login" class="nav-link">Sign In</a><button class="btn-upgrade-nav" id="nav-upgrade" class="btn-upgrade-nav nav-upgrade-hidden">⚡ Upgrade</button><button class="btn-icon" id="nav-manage" class="btn-icon nav-manage-hidden">Manage Plan</button><a href="#" id="nav-signup" class="btn-nav">Get Started</a></div>
+  </nav>
+  <div class="modal-overlay hidden" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal">
+      <button class="modal-close" id="modal-close" aria-label="Close dialog">&times;</button>
+      <div class="modal-tabs"><button class="tab-btn active" data-tab="login">Sign In</button><button class="tab-btn" data-tab="signup">Sign Up</button></div>
+      <div class="tab-content" id="tab-login"><input type="email" class="input" id="login-email" placeholder="Email"/><input type="password" class="input" id="login-password" placeholder="Password"/><button class="btn-primary full" id="btn-login" aria-label="Sign in to your account">Sign In</button></div>
+      <div class="tab-content hidden" id="tab-signup"><input type="text" class="input" id="signup-name" placeholder="Full Name"/><input type="email" class="input" id="signup-email" placeholder="Email"/><input type="password" class="input" id="signup-password" placeholder="Password"/><button class="btn-primary full" id="btn-signup" aria-label="Create a new account">Create Account</button></div>
+      <p class="auth-error hidden" id="auth-error"></p>
+    </div>
+  </div>
+  <section class="hero" id="main-content">
+    <div class="hero-badge">Networking Email Generator</div>
+    <h1 class="hero-title">Network Smarter.<br/><em>Open Every Door.</em></h1>
+    <p class="hero-sub">Generate personalized cold outreach, coffee chat requests, referral asks, and follow-up emails in seconds.</p>
+  </section>
+  <section class="tool-section" aria-label="Main tool"><div id="usage-meter-container"></div>
+    <div class="tool-container">
+      <div class="tool-panel">
+        <div class="panel-header"><span class="panel-num">01</span><h2>Email Type</h2></div>
+        <div class="email-type-grid" id="email-type-grid">
+          <button class="type-btn active" data-type="cold-outreach">Cold Outreach</button>
+          <button class="type-btn" data-type="coffee-chat">Coffee Chat Request</button>
+          <button class="type-btn" data-type="referral">Referral Ask</button>
+          <button class="type-btn" data-type="follow-up">Follow Up</button>
+          <button class="type-btn" data-type="thank-you">Thank You Note</button>
+          <button class="type-btn" data-type="reconnect">Reconnecting</button>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="tool-panel">
+          <div class="panel-header"><span class="panel-num">02</span><h2>About Them</h2></div>
+          <input type="text" class="input" id="recipient-name" placeholder="Recipient's name"/>
+          <input type="text" class="u-rigor_networking-1 input" id="recipient-title" placeholder="Their title/role"/>
+          <input type="text" class="u-rigor_networking-2 input" id="recipient-company" placeholder="Their company"/>
+          <textarea class="u-rigor_networking-3 input textarea" id="connection-point" placeholder="How do you know them or what's your connection point? (e.g. saw their talk, mutual friend, alumni)"></textarea>
+        </div>
+        <div class="tool-panel">
+          <div class="panel-header"><span class="panel-num">03</span><h2>About You</h2></div>
+          <input type="text" class="input" id="your-name" placeholder="Your name"/>
+          <input type="text" class="u-rigor_networking-4 input" id="your-role" placeholder="Your current role"/>
+          <input type="text" class="u-rigor_networking-5 input" id="your-goal" placeholder="What you're hoping to achieve"/>
+          <textarea class="u-rigor_networking-6 input textarea" id="your-context" placeholder="Any additional context or specific ask..."></textarea>
+        </div>
+      </div>
+      <div class="tool-actions">
+        <button class="btn-primary large" id="btn-generate" aria-label="Generate content"><span class="btn-text">Generate Email</span><span class="btn-loader hidden">Writing...</span></button>
+      </div>
+      <div class="result-panel hidden" id="result-panel">
+        <div class="result-toolbar">
+          <h3>Your Email</h3>
+          <div class="toolbar-actions">
+            <button class="btn-icon" id="btn-copy" aria-label="Copy to clipboard">📋 Copy</button>
+            <button class="btn-icon" id="btn-save" aria-label="Save result">💾 Save</button>
+            <button class="btn-icon" id="btn-regenerate">🔄 Regenerate</button>
+          </div>
+        </div>
+        <div class="email-subject-line"><strong>Subject: </strong><span id="email-subject"></span></div>
+        <div class="cover-letter-output" id="email-body" contenteditable="true"></div>
+      </div>
+    </div>
+  </section>
+  <footer class="footer"><p>© 2025 rigor.design</p></footer>
+  <script type="module" src="js/app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
