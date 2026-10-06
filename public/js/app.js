@@ -3,7 +3,7 @@ import { validators, guardSubmit } from "./utils/validate.js";
 import { saveDoc, getUserDocs, tsToString } from "./services/firestoreService.js";
 import { apiFetch } from "./config/env.js";
 import { toast } from "./utils/toast.js";
-import { initAuthModal } from "./utils/helpers.js";
+import { initAuthModal, wireAuthNav, openAuthModal, showToolError, clearToolError } from "./utils/helpers.js";
 import { authService } from "./services/authService.js";
 
 let currentUser = null;
@@ -21,6 +21,7 @@ document.getElementById("nav-upgrade")?.addEventListener("click", () => showPric
 document.getElementById("nav-manage")?.addEventListener("click", () => showPricingModal("pro"));
 
 initAuthModal(authService);
+wireAuthNav(authService, () => currentUser);
 
 document.querySelectorAll(".type-btn").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -30,29 +31,35 @@ document.querySelectorAll(".type-btn").forEach(btn => {
   });
 });
 
-async function generate() {
-  const recipientName = document.getElementById("recipient-name").value.trim();
-  if (!recipientName) return toast.warning("Please enter the recipient's name.");
-  document.querySelector(".btn-text").classList.add("hidden"); document.querySelector(".btn-loader").classList.remove("hidden"); document.getElementById("btn-generate").disabled = true;
-  const payload = { emailType: selectedType, recipientName, recipientTitle: document.getElementById("recipient-title").value, recipientCompany: document.getElementById("recipient-company").value, connectionPoint: document.getElementById("connection-point").value, yourName: document.getElementById("your-name").value, yourRole: document.getElementById("your-role").value, yourGoal: document.getElementById("your-goal").value, context: document.getElementById("your-context").value };
-  try {
-    const res = await apiFetch("/api/networking-email", payload);
-    const data = await res.json();
-    document.getElementById("email-subject").textContent = data.subject || `Quick introduction — ${payload.yourName || "connecting"}`;
-    document.getElementById("email-body").innerText = data.body || getFallback(payload);
-    document.getElementById("result-panel").classList.remove("hidden");
-    document.getElementById("result-panel").scrollIntoView({behavior:"smooth"});
-  } catch(e) {
-    document.getElementById("email-subject").textContent = `Quick introduction`;
-    document.getElementById("email-body").innerText = getFallback(payload);
-    document.getElementById("result-panel").classList.remove("hidden");
-  } finally {
-    document.querySelector(".btn-text").classList.remove("hidden"); document.querySelector(".btn-loader").classList.add("hidden"); document.getElementById("btn-generate").disabled = false;
-  }
+function setBusy(busy) {
+  const btn = document.getElementById("btn-generate");
+  btn.querySelector(".btn-text").classList.toggle("hidden", busy);
+  btn.querySelector(".btn-loader").classList.toggle("hidden", !busy);
+  btn.disabled = busy;
+  const regen = document.getElementById("btn-regenerate");
+  if (regen) regen.disabled = busy;
 }
 
-function getFallback(p) {
-  return `Hi ${p.recipientName},\n\nI hope this message finds you well. My name is ${p.yourName||'[Your Name]'} and I'm a ${p.yourRole||'professional'} with a strong interest in ${p.recipientCompany||'your company'}.\n\n${p.connectionPoint ? `I came across your profile through ${p.connectionPoint}, and ` : ''}I've been impressed by your work and would love to connect.\n\n${p.yourGoal||'I\'d love to learn more about your experience and any advice you might have.'}\n\nWould you be open to a 15-minute virtual coffee chat sometime in the next few weeks? I\'m happy to work around your schedule.\n\nThank you for your time,\n${p.yourName||'[Your Name]'}`;
+async function generate() {
+  const recipientName = document.getElementById("recipient-name").value.trim();
+  if (!recipientName) { document.getElementById("recipient-name").focus(); return toast.warning("Please enter the recipient's name."); }
+  const payload = { emailType: selectedType, recipientName, recipientTitle: document.getElementById("recipient-title").value.trim(), recipientCompany: document.getElementById("recipient-company").value.trim(), connectionPoint: document.getElementById("connection-point").value.trim(), yourName: document.getElementById("your-name").value.trim(), yourRole: document.getElementById("your-role").value.trim(), yourGoal: document.getElementById("your-goal").value.trim(), context: document.getElementById("your-context").value.trim() };
+  clearToolError();
+  setBusy(true);
+  try {
+    const data = await apiFetch("/api/networking-email", payload);
+    // Never substitute a canned template: an empty body is an error, not a result.
+    if (!data?.body) throw new Error("The server returned an empty email.");
+    document.getElementById("email-subject").textContent = data.subject || "";
+    document.getElementById("email-body").innerText = data.body;
+    document.getElementById("result-panel").classList.remove("hidden");
+    document.getElementById("result-panel").scrollIntoView({ behavior: "smooth" });
+  } catch (e) {
+    document.getElementById("result-panel").classList.add("hidden");
+    showToolError(e, generate);
+  } finally {
+    setBusy(false);
+  }
 }
 
 document.getElementById("btn-generate").addEventListener("click", generate);
@@ -60,11 +67,16 @@ document.getElementById("btn-regenerate")?.addEventListener("click", generate);
 document.getElementById("btn-copy")?.addEventListener("click", () => {
   const subject = document.getElementById("email-subject").textContent;
   const body = document.getElementById("email-body").innerText;
-  navigator.clipboard.writeText(`Subject: ${subject}\n\n${body}`).then(() => toast.success("Copied!"));
+  navigator.clipboard.writeText(subject ? `Subject: ${subject}\n\n${body}` : body)
+    .then(() => toast.success("Copied!"))
+    .catch(() => toast.error("Couldn't copy. Please select the text and copy it manually."));
 });
 document.getElementById("btn-save")?.addEventListener("click", async () => {
-  if(!currentUser) { authModal.classList.remove("hidden"); return; }
-  
-  await saveDoc("networking-emails", currentUser?.uid || '', { userId: currentUser.uid, type: selectedType, recipientName: document.getElementById("recipient-name").value, subject: document.getElementById("email-subject").textContent, body: document.getElementById("email-body").innerText, createdAt: serverTimestamp() });
-  toast.success("Email saved!");
+  if (!currentUser) { openAuthModal("login"); return; }
+  try {
+    await saveDoc("networking-emails", currentUser.uid, { type: selectedType, recipientName: document.getElementById("recipient-name").value, subject: document.getElementById("email-subject").textContent, body: document.getElementById("email-body").innerText });
+    toast.success("Email saved!");
+  } catch (e) {
+    toast.error(`Couldn't save: ${e?.message || "unknown error"}`);
+  }
 });

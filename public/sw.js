@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "rigor-networking-v1";
+const CACHE_NAME = "rigor-networking-v2"; // bumped: v1 cached a broken env.js (SyntaxError)
 const STATIC_ASSETS = [
   "/",
   "/index.html",
