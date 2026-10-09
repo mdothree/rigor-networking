@@ -17,7 +17,7 @@ authService.onAuthChanged(async user => {
   await initPaywall(user ? user.uid : null);
   if (user) renderUsageMeter("usage-meter-container", "analyses");
 });
-document.getElementById("nav-upgrade")?.addEventListener("click", () => showPricingModal("pro"));
+document.getElementById("nav-upgrade")?.addEventListener("click", (e) => { e.preventDefault(); showPricingModal("pro"); });
 document.getElementById("nav-manage")?.addEventListener("click", () => showPricingModal("pro"));
 
 initAuthModal(authService);
@@ -42,7 +42,7 @@ function setBusy(busy) {
 
 async function generate() {
   const recipientName = document.getElementById("recipient-name").value.trim();
-  if (!recipientName) { document.getElementById("recipient-name").focus(); return toast.warning("Please enter the recipient's name."); }
+  if (!guardSubmit([{ id: "recipient-name", rules: [validators.required, validators.minLength(2)], label: "Recipient's name" }], toast)) return;
   const payload = { emailType: selectedType, recipientName, recipientTitle: document.getElementById("recipient-title").value.trim(), recipientCompany: document.getElementById("recipient-company").value.trim(), connectionPoint: document.getElementById("connection-point").value.trim(), yourName: document.getElementById("your-name").value.trim(), yourRole: document.getElementById("your-role").value.trim(), yourGoal: document.getElementById("your-goal").value.trim(), context: document.getElementById("your-context").value.trim() };
   clearToolError();
   setBusy(true);
