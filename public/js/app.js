@@ -1,4 +1,4 @@
-import { initPaywall, gate, showPricingModal, renderUsageMeter } from "./services/paywallUI.js";
+import { initPaywall, gate, requirePro, showPricingModal, renderUsageMeter } from "./services/paywallUI.js";
 import { validators, guardSubmit } from "./utils/validate.js";
 import { saveDoc, getUserDocs, tsToString } from "./services/firestoreService.js";
 import { apiFetch } from "./config/env.js";
@@ -44,6 +44,8 @@ async function generate() {
   const recipientName = document.getElementById("recipient-name").value.trim();
   if (!guardSubmit([{ id: "recipient-name", rules: [validators.required, validators.minLength(2)], label: "Recipient's name" }], toast)) return;
   const payload = { emailType: selectedType, recipientName, recipientTitle: document.getElementById("recipient-title").value.trim(), recipientCompany: document.getElementById("recipient-company").value.trim(), connectionPoint: document.getElementById("connection-point").value.trim(), yourName: document.getElementById("your-name").value.trim(), yourRole: document.getElementById("your-role").value.trim(), yourGoal: document.getElementById("your-goal").value.trim(), context: document.getElementById("your-context").value.trim() };
+  // #94: paid from first use (opens the pricing modal when not subscribed).
+  if (!(await requirePro("analyses"))) return;
   clearToolError();
   setBusy(true);
   try {
